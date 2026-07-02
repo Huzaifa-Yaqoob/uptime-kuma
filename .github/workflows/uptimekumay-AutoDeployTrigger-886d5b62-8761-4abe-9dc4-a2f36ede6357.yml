@@ -31,17 +31,30 @@ jobs:
           tenant-id: ${{ secrets.UPTIMEKUMAY_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.UPTIMEKUMAY_AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build and push container image to registry
+      - name: Log in to container registry
+        uses: docker/login-action@v3
+        with:
+          registry: uptimekumaa.azurecr.io
+          username: ${{ secrets.UPTIMEKUMAY_REGISTRY_USERNAME }}
+          password: ${{ secrets.UPTIMEKUMAY_REGISTRY_PASSWORD }}
+
+      - name: Build and push image with target
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ github.workspace }}
+          file: ./docker/dockerfile
+          target: release
+          push: true
+          tags: uptimekumaa.azurecr.io/uptimekumay:${{ github.sha }}
+
+      - name: Deploy to Azure Container Apps
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}
-          dockerfilePath: ./docker/dockerfile
-          targetLabel: release
+          containerAppName: uptimekumay
+          resourceGroup: iamnew
+          imageToDeploy: uptimekumaa.azurecr.io/uptimekumay:${{ github.sha }}
           registryUrl: uptimekumaa.azurecr.io
           registryUsername: ${{ secrets.UPTIMEKUMAY_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.UPTIMEKUMAY_REGISTRY_PASSWORD }}
-          containerAppName: uptimekumay
-          resourceGroup: iamnew
-          imageToBuild: uptimekumaa.azurecr.io/uptimekumay:${{ github.sha }}
 
 
