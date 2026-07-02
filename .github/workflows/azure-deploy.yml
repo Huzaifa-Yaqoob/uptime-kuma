@@ -38,7 +38,22 @@ jobs:
           username: ${{ secrets.AZURE_CLIENT_ID }}
           password: ${{ secrets.AZURE_CLIENT_SECRET }}
 
-      # Build and push directly without fighting host dependencies
+      # Use Node.js to compile the Go binaries first (the Dockerfile expects pre-built binaries)
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+
+      - name: Install cross-env
+        run: npm install -g cross-env
+
+      - name: Build Go binaries
+        working-directory: extra/uptime-kuma-push
+        run: npm run build-all
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
