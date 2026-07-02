@@ -22,12 +22,26 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Step 1: Install dependencies and compile assets specifically for the push package
+      - name: Build push package assets
+        working-directory: extra/uptime-kuma-push
+        run: |
+          npm ci
+          npm run build
+
+      # Step 2: Set up container builders
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Step 3: Authenticate with Azure
       - name: Log in to Azure Container Registry
         uses: docker/login-action@v3
         with:
@@ -35,13 +49,12 @@ jobs:
           username: ${{ secrets.AZURE_CLIENT_ID }}
           password: ${{ secrets.AZURE_CLIENT_SECRET }}
 
-      # We point directly to Uptime Kuma's production root Dockerfile 
-      # which handles dependencies, compilation, and multi-arch automatically.
+      # Step 4: Build using the isolated subfolder context where the new ./build folder lives
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: . 
-          file: Dockerfile
+          context: extra/uptime-kuma-push
+          file: extra/uptime-kuma-push/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ secrets.AZURE_REGISTRY_URL }}/uptime-kuma-push:latest
