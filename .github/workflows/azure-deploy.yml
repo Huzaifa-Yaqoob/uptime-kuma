@@ -27,12 +27,12 @@ jobs:
         with:
           node-version: 22
 
-      # 💡 CHANGED: Using regular npm install since there is no lockfile in this subdirectory
+      # 💡 CHANGED: Running the exact script specified by Uptime Kuma for this package
       - name: Build push package assets
         working-directory: extra/uptime-kuma-push
         run: |
           npm install
-          npm run build
+          npm run build-docker
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
