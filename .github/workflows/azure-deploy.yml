@@ -51,6 +51,9 @@ jobs:
           username: ${{ secrets.AZURE_CLIENT_ID }}
           password: ${{ secrets.AZURE_CLIENT_SECRET }}
 
+      - name: Clear .dockerignore for subfolder Docker build
+        run: rm -f .dockerignore
+
       # Step 6: Build and push utilizing the root context
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
