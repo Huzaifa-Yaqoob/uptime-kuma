@@ -22,17 +22,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'npm'
-
-      - name: Install dependencies and build
-        run: |
-          npm ci
-          npm run build
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -46,17 +35,13 @@ jobs:
           username: ${{ secrets.AZURE_CLIENT_ID }}
           password: ${{ secrets.AZURE_CLIENT_SECRET }}
 
-      # 💡 PREPARE CONTEXT: Remove .dockerignore and pull build.js to the root
-      - name: Prepare Docker Build Context
-        run: |
-          rm -f .dockerignore
-          cp extra/uptime-kuma-push/build.js ./build.js
-
+      # We point directly to Uptime Kuma's production root Dockerfile 
+      # which handles dependencies, compilation, and multi-arch automatically.
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           context: . 
-          file: extra/uptime-kuma-push/Dockerfile
+          file: Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ secrets.AZURE_REGISTRY_URL }}/uptime-kuma-push:latest
