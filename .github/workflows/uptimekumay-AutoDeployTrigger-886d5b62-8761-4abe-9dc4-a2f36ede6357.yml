@@ -34,16 +34,14 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}"./docker/dockerfile"
-          _dockerfilePathKey_: _dockerfilePath_
-          _targetLabelKey_: _targetLabel_
+          appSourcePath: ${{ github.workspace }}
+          dockerfilePath: ./docker/dockerfile
+          targetLabel: release
           registryUrl: uptimekumaa.azurecr.io
           registryUsername: ${{ secrets.UPTIMEKUMAY_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.UPTIMEKUMAY_REGISTRY_PASSWORD }}
           containerAppName: uptimekumay
           resourceGroup: iamnew
           imageToBuild: uptimekumaa.azurecr.io/uptimekumay:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
 
 
