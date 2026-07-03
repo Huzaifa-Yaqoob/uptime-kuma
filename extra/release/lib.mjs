@@ -63,7 +63,7 @@ export function buildImage(
     tags,
     target,
     buildArgs = "",
-    dockerfile = "docker/dockerfile",
+    dockerfile = "docker/Dockerfile",
     platform = "linux/amd64,linux/arm64,linux/arm/v7"
 ) {
     let args = ["buildx", "build", "-f", dockerfile, "--platform", platform];
@@ -193,7 +193,7 @@ export function ver(version, identifier) {
 
 /**
  * Upload artifacts to GitHub
- * docker buildx build -f docker/dockerfile --platform linux/amd64 -t louislam/uptime-kuma:upload-artifact --build-arg VERSION --build-arg GITHUB_TOKEN --target upload-artifact . --progress plain
+ * docker buildx build -f docker/Dockerfile --platform linux/amd64 -t louislam/uptime-kuma:upload-artifact --build-arg VERSION --build-arg GITHUB_TOKEN --target upload-artifact . --progress plain
  * @param {string} version Version
  * @param {string} githubToken GitHub token
  * @returns {void}
@@ -204,7 +204,7 @@ export function uploadArtifacts(version, githubToken) {
         "buildx",
         "build",
         "-f",
-        "docker/dockerfile",
+        "docker/Dockerfile",
         "--platform",
         "linux/amd64",
         "-t",

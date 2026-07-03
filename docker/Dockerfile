@@ -8,7 +8,7 @@ ARG BASE_IMAGE=louislam/uptime-kuma:base2
 FROM louislam/uptime-kuma:builder-go AS build_healthcheck
 
 ############################################
-# Build in Node.js
+# Build in Node.js (Modified to compile frontend inside Docker)
 ############################################
 FROM louislam/uptime-kuma:base2 AS build
 USER node
@@ -18,8 +18,19 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
 COPY --chown=node:node .npmrc .npmrc
 COPY --chown=node:node package.json package.json
 COPY --chown=node:node package-lock.json package-lock.json
-RUN npm ci --omit=dev
-COPY . .
+
+# Install ALL dependencies (including devDependencies needed for the build step)
+RUN npm ci
+
+# Copy the source code into the container
+COPY --chown=node:node . .
+
+# Compile the frontend assets (generates the missing 'dist/' folder)
+RUN npm run build
+
+# Prune devDependencies to keep the production layer slim
+RUN npm prune --omit=dev
+
 COPY --chown=node:node --from=build_healthcheck /app/extra/healthcheck /app/extra/healthcheck
 RUN mkdir ./data
 
@@ -108,11 +119,6 @@ ARG DIST=dist.tar.gz
 
 RUN chmod +x /app/extra/upload-github-release-asset.sh
 
-# Full Build
-# RUN tar -zcvf $FILE app
-# RUN /app/extra/upload-github-release-asset.sh github_api_token=$GITHUB_TOKEN owner=louislam repo=uptime-kuma tag=$VERSION filename=$FILE
-
 # Dist only
 RUN cd /app && tar -zcvf $DIST dist
 RUN /app/extra/upload-github-release-asset.sh github_api_token=$GITHUB_TOKEN owner=louislam repo=uptime-kuma tag=$VERSION filename=/app/$DIST
-
