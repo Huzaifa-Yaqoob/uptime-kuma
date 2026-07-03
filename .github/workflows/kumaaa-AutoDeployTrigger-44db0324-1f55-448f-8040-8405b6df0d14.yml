@@ -1,0 +1,49 @@
+name: Trigger auto deployment for kumaaa
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - '**'
+    - '.github/workflows/kumaaa-AutoDeployTrigger-44db0324-1f55-448f-8040-8405b6df0d14.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+      contents: read #Required when GH token is used to authenticate with private repo
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.KUMAAA_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.KUMAAA_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.KUMAAA_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}/docker/dockerfile
+          _dockerfilePathKey_: _dockerfilePath_
+          _targetLabelKey_: _targetLabel_
+          registryUrl: uptimekumaa.azurecr.io
+          registryUsername: ${{ secrets.KUMAAA_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.KUMAAA_REGISTRY_PASSWORD }}
+          containerAppName: kumaaa
+          resourceGroup: DefaultResourceGroup-CCAN
+          imageToBuild: uptimekumaa.azurecr.io/kumaaa:${{ github.sha }}
+          _buildArgumentsKey_: |
+            _buildArgumentsValues_
+
+
