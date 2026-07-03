@@ -1,0 +1,49 @@
+name: Trigger auto deployment for uptime-kuma
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - '**'
+    - '.github/workflows/uptime-kuma-AutoDeployTrigger-179e6556-f660-4e3c-b99f-1a6376db62bb.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+      contents: read #Required when GH token is used to authenticate with private repo
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.UPTIMEKUMA_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.UPTIMEKUMA_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.UPTIMEKUMA_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}docker
+          _dockerfilePathKey_: _dockerfilePath_
+          _targetLabelKey_: _targetLabel_
+          registryUrl: kumaauptime.azurecr.io
+          registryUsername: ${{ secrets.UPTIMEKUMA_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.UPTIMEKUMA_REGISTRY_PASSWORD }}
+          containerAppName: uptime-kuma
+          resourceGroup: DefaultResourceGroup-CCAN
+          imageToBuild: kumaauptime.azurecr.io/uptime-kuma:${{ github.sha }}
+          _buildArgumentsKey_: |
+            _buildArgumentsValues_
+
+
