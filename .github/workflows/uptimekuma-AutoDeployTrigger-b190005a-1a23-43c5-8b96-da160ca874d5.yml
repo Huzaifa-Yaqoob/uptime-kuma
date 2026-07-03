@@ -32,10 +32,10 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-            # 1. Set this back to the root so Docker can find package.json
+            # 1. Point to the absolute root of the repository
             appSourcePath: ${{ github.workspace }}
 
-            # 2. Tell it exactly where the Dockerfile lives relative to the root
+            # 2. Tell it the Dockerfile is also right at the root
             dockerfilePath: docker/Dockerfile
 
             registryUrl: uptimekuma1.azurecr.io
